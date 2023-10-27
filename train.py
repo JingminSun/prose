@@ -215,7 +215,7 @@ if __name__ == "__main__":
         params.debugging = False
 
     if params.export_data:
-        params.cpu = True
+        params.cpu = False
         params.eval_in_domain = False
         params.use_wandb = False
         params.save_periodic = 0

@@ -120,7 +120,7 @@ def get_parser():
         default=num_workers,
         help="Number of CPU workers for DataLoader",
     )
-    parser.add_argument("--exp_name", type=str, default="ode_exp", help="Experiment name")
+    parser.add_argument("--exp_name", type=str, default="pde_exp", help="Experiment name")
     parser.add_argument("--exp_id", type=str, default="", help="Experiment ID")
     parser.add_argument("--print_freq", type=int, default=500, help="Print every n steps")
 

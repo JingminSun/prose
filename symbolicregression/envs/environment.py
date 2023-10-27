@@ -351,6 +351,26 @@ class FunctionEnvironment(object):
             # default="chaotic_ode_all",
             help="types of ODE examples to generate, select from chaotic_ode_all, chaotic_ode_3d",
         )
+
+        parser.add_argument(
+            "--types_PDE",
+            type=str,
+            default="pde",
+            help="types of PDE examples to generate",
+        )
+
+        parser.add_argument(
+            "--ode_gen",
+            type=bool_flag,
+            default=True,
+            help="Whether to generate ODEs",
+        )
+        parser.add_argument(
+            "--pde_gen",
+            type=bool_flag,
+            default=True,
+            help="Whether to generate PDEs",
+        )
         parser.add_argument(
             "--ICs_per_equation",
             type=int,
@@ -363,6 +383,10 @@ class FunctionEnvironment(object):
         parser.add_argument("--input_step", type=int, default=1, help="Step size for input data points")
         parser.add_argument(
             "--ode_param_range_gamma", type=float, default=0.1, help="relative range for sampling parameters of ODEs"
+        )
+
+        parser.add_argument(
+            "--pde_param_range_gamma", type=float, default=0.01, help="relative range for sampling parameters of PDEs"
         )
 
         parser.add_argument(
