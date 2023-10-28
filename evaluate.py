@@ -113,11 +113,11 @@ class Evaluator(object):
         self.dataloader = None
         self.output_dim = self.params.max_output_dimension
 
-        if self.params.ode_gen:
-            self.types = self.env.generator.ode_generator.types
-        else:
-            self.types = self.env.generator.pde_generator.types
-
+        # if self.params.ode_gen:
+        #     self.types = self.env.generator.ode_generator.types
+        # else:
+        #     self.types = self.env.generator.pde_generator.types
+        self.types = self.env.generator.ode_generator.types
         self.types_to_idx = {s: i for i, s in enumerate(self.types)}
 
     def set_env_copies(self, data_types):

@@ -347,30 +347,30 @@ class FunctionEnvironment(object):
         parser.add_argument(
             "--types",
             type=str,
-            default="chaotic_ode_3d",
-            # default="chaotic_ode_all",
-            help="types of ODE examples to generate, select from chaotic_ode_all, chaotic_ode_3d",
-        )
-
-        parser.add_argument(
-            "--types_PDE",
-            type=str,
             default="pde",
-            help="types of PDE examples to generate",
+            # default="chaotic_ode_all",
+            help="types of ODE examples to generate, select from chaotic_ode_all, chaotic_ode_3d, pde",
         )
 
-        parser.add_argument(
-            "--ode_gen",
-            type=bool_flag,
-            default=True,
-            help="Whether to generate ODEs",
-        )
-        parser.add_argument(
-            "--pde_gen",
-            type=bool_flag,
-            default=True,
-            help="Whether to generate PDEs",
-        )
+        # parser.add_argument(
+        #     "--types_PDE",
+        #     type=str,
+        #     default="pde",
+        #     help="types of PDE examples to generate",
+        # )
+
+        # parser.add_argument(
+        #     "--ode_gen",
+        #     type=bool_flag,
+        #     default=True,
+        #     help="Whether to generate ODEs",
+        # )
+        # parser.add_argument(
+        #     "--pde_gen",
+        #     type=bool_flag,
+        #     default=True,
+        #     help="Whether to generate PDEs",
+        # )
         parser.add_argument(
             "--ICs_per_equation",
             type=int,
@@ -418,8 +418,8 @@ class FunctionEnvironment(object):
         parser.add_argument("--min_input_dimension", type=int, default=0)
         parser.add_argument("--max_input_dimension", type=int, default=0)
         parser.add_argument("--min_output_dimension", type=int, default=3)
-        parser.add_argument("--max_output_dimension", type=int, default=3)
-        # parser.add_argument("--max_output_dimension", type=int, default=5)
+        # parser.add_argument("--max_output_dimension", type=int, default=3)
+        parser.add_argument("--max_output_dimension", type=int, default=6)
 
 
 class EnvDataset(Dataset):
@@ -476,6 +476,7 @@ class EnvDataset(Dataset):
 
         # generation, or reloading from file
         if path is not None:
+
             assert os.path.isfile(path), "{} not found".format(path)
             if params.batch_load and self.train:
                 self.load_chunk()
@@ -492,6 +493,8 @@ class EnvDataset(Dataset):
                     else:
                         lines = []
                         for i, line in enumerate(f):
+                            if i % 10000 == 9999:
+                                print(i)
                             if i == params.reload_size:
                                 break
                             if i % params.n_gpu_per_node == params.local_rank:

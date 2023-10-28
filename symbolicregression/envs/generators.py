@@ -316,6 +316,12 @@ class RandomFunctions(Generator):
             ["rand"]
             + [f"u_{i}" for i in range(self.max_output_dimension)]
             + [f"x_{i}" for i in range(self.max_input_dimension)]
+            # + ["u_i"]
+            # + ["u_i+1"]
+            # + ["u_i-1"]
+            + ["t"]
+            # + ["u_n"]
+            # + ["u_n-1"]
         )
         self.symbols = (
             list(self.operators)
@@ -332,22 +338,21 @@ class RandomFunctions(Generator):
         self.equation_words = sorted(list(set(self.symbols)))
         self.equation_words = special_words + self.equation_words
 
-        if  self.params.ode_gen:
-            self.ode_generator = ODEGenerator(
-                self.params,
-                self.float_encoder,
-                self.equation_encoder,
-                self.t_span,
-                self.t_eval,
-            )
-        if self.params.pde_gen:
-            self.pde_generator = PDEGenerator(
-                self.params,
-                self.float_encoder,
-                self.equation_encoder,
-                self.t_span,
-                self.t_eval,
-            )
+        self.ode_generator = ODEGenerator(
+            self.params,
+            self.float_encoder,
+            self.equation_encoder,
+            self.t_span,
+            self.t_eval,
+        )
+
+        #  self.pde_generator = PDEGenerator(
+        #         self.params,
+        #         self.float_encoder,
+        #         self.equation_encoder,
+        #         self.t_span,
+        #         self.t_eval,
+        # )
 
     def generate_float(self, rng, exponent=None):
         sign = rng.choice([-1, 1])
@@ -401,7 +406,7 @@ class ODEGenerator:
             "lorenz_96_5d": 5,
             "duffing": 3,
             "double_pendulum": 4,
-            "heat": 10,
+            "heat": 6,
         }
 
         if self.params.types == "chaotic_ode_3d":
@@ -437,10 +442,10 @@ class ODEGenerator:
                 "duffing",
                 "double_pendulum",
             ]
-        elif self.params.types == "pde":
-            self.types = ["heat"]
         elif self.params.types == "scalar_ode":
             self.types = ["trig", "poly"]
+        elif self.params.types == "pde":
+            self.types = ["heat"]
         else:
             try:
                 self.types = self.params.types.split(",")
@@ -516,6 +521,7 @@ class ODEGenerator:
 
     def tree_with_additional_term(self, type, rng):
         op_list, term_list = getattr(self, type + "_tree_list")()
+
         term_to_add = rng.choice(self.addition_terms[self.type_to_dim[type]])
 
         if type not in self.addition_locations:
@@ -2896,92 +2902,117 @@ class ODEGenerator:
         item["data"] = res
         return item
 
-    # def heat_tree_list(self):
-    #     p = self.params
-    #     ph = self.ph
-    #     op_list = [[], ["sub", "add"], ["sub"]]
-    #     term_list = [
-    #         [
-    #             Node("mul", p, [Node(ph, p), Node("cos", p, [self.mul_terms([ph, "t"])])])
-    #         ],
-    #         [
-    #             self.mul_terms([ph, "u_i-1"]),
-    #             self.mul_terms([ph, "u_i"]),
-    #             self.mul_terms([ph, "u_i+1"]),
-    #         ],
-    #         [
-    #             self.mul_terms([ph, "u_n-1"]),
-    #             self.mul_terms([ph, "u_n"]),
-    #         ]
-    #     ]
-    #     return op_list, term_list
+    def heat_tree_list(self):
+        p = self.params
+        ph = self.ph
+        op_list = [[]]
+        for i in range(1, self.type_to_dim["heat"] - 1):
+            op_list.append(["sub", "add"])
+        op_list.append(["sub"])
+        term_list = [
+            [
+                Node("mul", p, [Node(ph, p), Node("cos", p, [self.mul_terms([ph, "t"])])])
+            ]]
+        for i in range(1, self.type_to_dim["heat"] - 1):
+            term_list.append(
+                [
+                    self.mul_terms([ph, f"u_{i-1}"]),
+                    self.mul_terms([ph, f"u_{i}"]),
+                    self.mul_terms([ph, f"u_{i+1}"]),
+                ]
+            )
+        term_list.append(
+            [
+                self.mul_terms([ph, f"u_{self.type_to_dim['heat'] - 2 }"]),
+                self.mul_terms([ph, f"u_{self.type_to_dim['heat'] - 1}"]),
+            ]
+        )
+        return op_list, term_list
 
-    # def generate_heat(self, rng, train):
-    #     c0_range = self.get_sample_range(2 * np.pi)
-    #     c1_range = self.get_sample_range(self.type_to_mesh["heat"] ** 2 / 8)
-    #
-    #     item = {"type": "heat"}
-    #     c0 = self.refine_floats(rng.uniform(*c0_range, (1,)))[0]
-    #     c1 = self.refine_floats(rng.uniform(*c1_range, (1,)))[0]
-    #
-    #     p = self.params
-    #
-    #     op_list = [[], ["sub", "add"], ["sub"]]
-    #     term_list = [
-    #         [
-    #             Node("mul", p, [Node(str(c0), p), Node("cos", p, [self.mul_terms([str(c0), "t"])])])
-    #         ],
-    #         [
-    #             self.mul_terms([str(c1), "u_i-1"]),
-    #             self.mul_terms([str(2 * c1), "u_i"]),
-    #             self.mul_terms([str(c1), "u_i+1"]),
-    #         ],
-    #         [
-    #             self.mul_terms([str(2 * c1), "u_n-1"]),
-    #             self.mul_terms([str(2 * c1), "u_n"]),
-    #         ]
-    #     ]
-    #
-    #     item["tree"] = self.tree_from_list(op_list, term_list)
-    #
-    #     def f_closure(c0, c1):
-    #         def f(u):
-    #             result = [c0 * np.cos(c0 * u[0])]
-    #             for i in range(1, self.type_to_mesh["heat"] - 1):
-    #                 result.append(c1 * (u[i - 1] + u[i + 1]) - 2 * c1 * u[i])
-    #             result.append(2 * c1 * u[self.type_to_mesh["heat"] - 1] - 2 * c1 * u[self.type_to_mesh["heat"]])
-    #             return np.array(result).reshape(u.shape)
-    #
-    #         return f
-    #
-    #     item["func"] = f_closure(c0, c1)
-    #
-    #     # ODE solve
-    #     num_initial_points = self.ICs_per_equation if train else self.eval_ICs_per_equation
-    #     y_0s = rng.uniform(-2, 2, (num_initial_points * 10, self.type_to_mesh["heat"] + 1))
-    #     res = []
-    #     fun = lambda _, y: item["func"](y)
-    #     for i in range(num_initial_points * 10):
-    #         y_0 = y_0s[i, :]
-    #         try:
-    #             sol = solve_ivp(
-    #                 fun,
-    #                 self.t_span,
-    #                 y_0,
-    #                 method="BDF",
-    #                 t_eval=self.t_eval,
-    #                 rtol=self.rtol,
-    #                 atol=self.atol,
-    #             )
-    #
-    #             if (sol.status) == 0 and (np.max(np.abs(sol.y)) < 1e3):
-    #                 res.append(torch.from_numpy(sol.y.transpose().astype(np.single)))
-    #                 if len(res) >= num_initial_points:
-    #                     break
-    #         except Exception as e:
-    #             pass
-    #     item["data"] = res
-    #     return item
+    def generate_heat(self, rng, train):
+
+        c0_range = self.get_sample_range(2 * np.pi)
+        c1_range = self.get_sample_range( self.type_to_dim["heat"] ** 2 / 8)
+
+        item = {"type": "heat"}
+        c0 = self.refine_floats(rng.uniform(*c0_range, (1,)))[0]
+        c1 = self.refine_floats(rng.uniform(*c1_range, (1,)))[0]
+
+        p = self.params
+
+        op_list = [[]]
+        for i in range(1,self.type_to_dim["heat"] - 1):
+            op_list.append(["sub", "add"])
+        op_list.append(["sub"])
+        term_list = [
+            [
+                Node("mul", p, [Node(str(c0), p), Node("cos", p, [self.mul_terms([str(c0), "t"])])])
+            ]]
+        for i in range(1, self.type_to_dim["heat"] - 1):
+            term_list.append(
+                [
+                    self.mul_terms([str(c1), f"u_{i-1}"]),
+                    self.mul_terms([str(2 * c1), f"u_{i}"]),
+                    self.mul_terms([str(c1), f"u_{i+1}"]),
+                ]
+            )
+        term_list.append(
+            [
+                self.mul_terms([str(2 * c1), f"u_{self.type_to_dim['heat'] - 2 }"]),
+                self.mul_terms([str(2 * c1), f"u_{self.type_to_dim['heat'] - 1}"]),
+            ]
+        )
+        #     [
+        #         self.mul_terms([str(c1), "u_i-1"]),
+        #         self.mul_terms([str(2 * c1), "u_i"]),
+        #         self.mul_terms([str(c1), "u_i+1"]),
+        #     ],
+        #     [
+        #         self.mul_terms([str(2 * c1), "u_n-1"]),
+        #         self.mul_terms([str(2 * c1), "u_n"]),
+        #     ]
+        # ]
+
+        item["tree"] = self.tree_from_list(op_list, term_list)
+
+        def f_closure(c0, c1):
+            def f(u):
+                result = [c0 * np.cos(c0 * u[0])]
+                for i in range(1, self.type_to_dim["heat"] - 1):
+                    result.append(c1 * (u[i - 1] + u[i + 1]) - 2 * c1 * u[i])
+                result.append(2 * c1 * u[-2] - 2 * c1 * u[-1])
+                return np.array(result).reshape(u.shape)
+
+            return f
+
+        item["func"] = f_closure(c0, c1)
+
+        # ODE solve
+        num_initial_points = self.ICs_per_equation if train else self.eval_ICs_per_equation
+        y_0s = rng.uniform(-2, 2, (num_initial_points * 10, self.type_to_dim["heat"]))
+        res = []
+        fun = lambda _, y: item["func"](y)
+        for i in range(num_initial_points * 10):
+            y_0 = y_0s[i, :]
+            try:
+                sol = solve_ivp(
+                    fun,
+                    self.t_span,
+                    y_0,
+                    method="BDF",
+                    t_eval=self.t_eval,
+                    rtol=self.rtol,
+                    atol=self.atol,
+                )
+
+                if (sol.status) == 0 and (np.max(np.abs(sol.y)) < 1e3):
+                    res.append(torch.from_numpy(sol.y.transpose().astype(np.single)))
+                    if len(res) >= num_initial_points:
+                        break
+            except Exception as e:
+                pass
+        item["data"] = res
+        return item
 
 
 class PDEGenerator(ODEGenerator):
@@ -2989,7 +3020,7 @@ class PDEGenerator(ODEGenerator):
         super().__init__(params, float_encoder, equation_encoder, t_span, t_eval)
 
         self.type_to_mesh = {
-            "heat": 10,
+            "heat": 5,
         }
         self.type_to_dim = {
             "heat": self.type_to_mesh["heat"] + 1,
@@ -3088,7 +3119,7 @@ class PDEGenerator(ODEGenerator):
             def f_closure(c0,c1):
                 def f(u):
                     result = [c0 * np.cos(c0 * u[0])]
-                    for i in range(1, self.type_to_mesh["heat"] -1):
+                    for i in range(1, self.type_to_mesh["heat"] ):
                         result.append(c1 * (u[i-1] + u[i+1]) - 2 * c1 * u[i])
                     result.append(2 * c1 * u[self.type_to_mesh["heat"] - 1] - 2 * c1 * u[self.type_to_mesh["heat"]])
                     return np.array(result).reshape(u.shape)

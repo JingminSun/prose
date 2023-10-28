@@ -27,10 +27,10 @@ def get_parser():
     num_workers = 8  # only for generating dataset
     batch_size = 256  # default 224/256, training batch size
     batch_size_eval = 256  # default 256
-    eval_size = 25600  # eval dataset size
+    eval_size = 512000  # eval dataset size
 
     dataset_path = (
-        "functions,../dataset/ode_3d/train_512000.prefix,../dataset/ode_3d/val_25600.prefix,"
+        "functions,checkpoint/ruijie/dumped/pde_exp/train/data.prefix,checkpoint/ruijie/dumped/pde_exp/valid/data.prefix,ruijie/dumped/pde_exp/test/data.prefix"
     )
 
     # main parameters
