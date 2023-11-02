@@ -488,13 +488,15 @@ class EnvDataset(Dataset):
                     if not train:
                         lines = []
                         for i, line in enumerate(f):
+                            if i % 1000 == 999:
+                                print(i)
                             if i % params.n_gpu_per_node == params.local_rank:
                                 lines.append(json.loads(line.rstrip()))
                     else:
                         lines = []
                         for i, line in enumerate(f):
-                            if i % 10000 == 9999:
-                                print(i)
+                            # if i % 10000 == 9999:
+                            #     print(i)
                             if i == params.reload_size:
                                 break
                             if i % params.n_gpu_per_node == params.local_rank:

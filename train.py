@@ -203,7 +203,7 @@ if __name__ == "__main__":
     if params.dry_run:
         print("Debugging run...")
         params.max_epoch = 1
-        params.n_steps_per_epoch = 5
+        params.n_steps_per_epoch = 20
         params.debugging = True
         params.exp_name = "debugging"
         params.use_wandb = False

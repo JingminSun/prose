@@ -15,7 +15,7 @@ def get_parser():
 
     # some default values, can also be changed in command line
 
-    hidden_dim = 512  # default 512
+    hidden_dim = 32  # default 512
     n_head = 8
 
     n_text_enc_layers = 4  # default 4
@@ -30,7 +30,8 @@ def get_parser():
     eval_size = 512000  # eval dataset size
 
     dataset_path = (
-        "functions,checkpoint/ruijie/dumped/pde_exp/train/data.prefix,checkpoint/ruijie/dumped/pde_exp/valid/data.prefix,ruijie/dumped/pde_exp/test/data.prefix"
+        "functions,checkpoint/ruijie/dumped/pde_exp/train/data.prefix,checkpoint/ruijie/dumped/pde_exp/valid/data.prefix,"
+        "ruijie/dumped/pde_exp/test/data.prefix"
     )
 
     # main parameters
