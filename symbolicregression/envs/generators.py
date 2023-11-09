@@ -319,7 +319,7 @@ class RandomFunctions(Generator):
             # + ["u_i"]
             # + ["u_i+1"]
             # + ["u_i-1"]
-            + ["t"]
+            # + ["t"]
             # + ["u_n"]
             # + ["u_n-1"]
         )
@@ -406,7 +406,7 @@ class ODEGenerator:
             "lorenz_96_5d": 5,
             "duffing": 3,
             "double_pendulum": 4,
-            "heat": 6,
+            "heat": 3,
         }
 
         if self.params.types == "chaotic_ode_3d":
@@ -446,6 +446,7 @@ class ODEGenerator:
             self.types = ["trig", "poly"]
         elif self.params.types == "pde":
             self.types = ["heat"]
+            self.type_to_mesh = {"heat": 6}
         else:
             try:
                 self.types = self.params.types.split(",")
@@ -2902,94 +2903,127 @@ class ODEGenerator:
         item["data"] = res
         return item
 
+    # def heat_tree_list(self):
+    #     p = self.params
+    #     ph = self.ph
+    #     op_list = [[]]
+    #     for i in range(1, self.type_to_dim["heat"] - 1):
+    #         op_list.append(["sub", "add"])
+    #     op_list.append(["sub"])
+    #     term_list = [
+    #         [
+    #             Node("mul", p, [Node(ph, p), Node("cos", p, [self.mul_terms([ph, "t"])])])
+    #         ]]
+    #     for i in range(1, self.type_to_dim["heat"] - 1):
+    #         term_list.append(
+    #             [
+    #                 self.mul_terms([ph, f"u_{i-1}"]),
+    #                 self.mul_terms([ph, f"u_{i}"]),
+    #                 self.mul_terms([ph, f"u_{i+1}"]),
+    #             ]
+    #         )
+    #     term_list.append(
+    #         [
+    #             self.mul_terms([ph, f"u_{self.type_to_dim['heat'] - 2 }"]),
+    #             self.mul_terms([ph, f"u_{self.type_to_dim['heat'] - 1}"]),
+    #         ]
+    #     )
+    #     return op_list, term_list
+
     def heat_tree_list(self):
         p = self.params
         ph = self.ph
-        op_list = [[]]
-        for i in range(1, self.type_to_dim["heat"] - 1):
-            op_list.append(["sub", "add"])
-        op_list.append(["sub"])
+        op_list = [ ["sub", "add"]]
         term_list = [
+
             [
-                Node("mul", p, [Node(ph, p), Node("cos", p, [self.mul_terms([ph, "t"])])])
-            ]]
-        for i in range(1, self.type_to_dim["heat"] - 1):
-            term_list.append(
-                [
-                    self.mul_terms([ph, f"u_{i-1}"]),
-                    self.mul_terms([ph, f"u_{i}"]),
-                    self.mul_terms([ph, f"u_{i+1}"]),
-                ]
-            )
-        term_list.append(
-            [
-                self.mul_terms([ph, f"u_{self.type_to_dim['heat'] - 2 }"]),
-                self.mul_terms([ph, f"u_{self.type_to_dim['heat'] - 1}"]),
+                self.mul_terms([ph, "u_0"]),
+                self.mul_terms([ph, "u_1"]),
+                self.mul_terms([ph, "u_2"]),
             ]
-        )
+        ]
         return op_list, term_list
 
     def generate_heat(self, rng, train):
 
-        c0_range = self.get_sample_range(2 * np.pi)
-        c1_range = self.get_sample_range( self.type_to_dim["heat"] ** 2 / 8)
+        c1_range = self.get_sample_range((self.type_to_mesh["heat"]-1)** 2)
 
         item = {"type": "heat"}
-        c0 = self.refine_floats(rng.uniform(*c0_range, (1,)))[0]
+
         c1 = self.refine_floats(rng.uniform(*c1_range, (1,)))[0]
 
         p = self.params
 
-        op_list = [[]]
-        for i in range(1,self.type_to_dim["heat"] - 1):
-            op_list.append(["sub", "add"])
-        op_list.append(["sub"])
+        op_list = [["sub", "add"]]
         term_list = [
             [
-                Node("mul", p, [Node(str(c0), p), Node("cos", p, [self.mul_terms([str(c0), "t"])])])
-            ]]
-        for i in range(1, self.type_to_dim["heat"] - 1):
-            term_list.append(
-                [
-                    self.mul_terms([str(c1), f"u_{i-1}"]),
-                    self.mul_terms([str(2 * c1), f"u_{i}"]),
-                    self.mul_terms([str(c1), f"u_{i+1}"]),
-                ]
-            )
-        term_list.append(
-            [
-                self.mul_terms([str(2 * c1), f"u_{self.type_to_dim['heat'] - 2 }"]),
-                self.mul_terms([str(2 * c1), f"u_{self.type_to_dim['heat'] - 1}"]),
+                self.mul_terms([str(c1), "u_0"]),
+                self.mul_terms([str(2 * c1), "u_1"]),
+                self.mul_terms([str(c1), "u_2"]),
             ]
-        )
-        #     [
-        #         self.mul_terms([str(c1), "u_i-1"]),
-        #         self.mul_terms([str(2 * c1), "u_i"]),
-        #         self.mul_terms([str(c1), "u_i+1"]),
-        #     ],
-        #     [
-        #         self.mul_terms([str(2 * c1), "u_n-1"]),
-        #         self.mul_terms([str(2 * c1), "u_n"]),
-        #     ]
-        # ]
+        ]
 
         item["tree"] = self.tree_from_list(op_list, term_list)
-
-        def f_closure(c0, c1):
+    #
+    #     c0_range = self.get_sample_range(2 * np.pi)
+    #     c1_range = self.get_sample_range( self.type_to_dim["heat"] ** 2 / 8)
+    #
+    #     item = {"type": "heat"}
+    #     c0 = self.refine_floats(rng.uniform(*c0_range, (1,)))[0]
+    #     c1 = self.refine_floats(rng.uniform(*c1_range, (1,)))[0]
+    #
+    #     p = self.params
+    #
+    #     op_list = [[]]
+    #     for i in range(1,self.type_to_dim["heat"] - 1):
+    #         op_list.append(["sub", "add"])
+    #     op_list.append(["sub"])
+    #     term_list = [
+    #         [
+    #             Node("mul", p, [Node(str(c0), p), Node("cos", p, [self.mul_terms([str(c0), "t"])])])
+    #         ]]
+    #     for i in range(1, self.type_to_dim["heat"] - 1):
+    #         term_list.append(
+    #             [
+    #                 self.mul_terms([str(c1), f"u_{i-1}"]),
+    #                 self.mul_terms([str(2 * c1), f"u_{i}"]),
+    #                 self.mul_terms([str(c1), f"u_{i+1}"]),
+    #             ]
+    #         )
+    #     term_list.append(
+    #         [
+    #             self.mul_terms([str(2 * c1), f"u_{self.type_to_dim['heat'] - 2 }"]),
+    #             self.mul_terms([str(2 * c1), f"u_{self.type_to_dim['heat'] - 1}"]),
+    #         ]
+    #     )
+    #     #     [
+    #     #         self.mul_terms([str(c1), "u_i-1"]),
+    #     #         self.mul_terms([str(2 * c1), "u_i"]),
+    #     #         self.mul_terms([str(c1), "u_i+1"]),
+    #     #     ],
+    #     #     [
+    #     #         self.mul_terms([str(2 * c1), "u_n-1"]),
+    #     #         self.mul_terms([str(2 * c1), "u_n"]),
+    #     #     ]
+    #     # ]
+    #
+    #     item["tree"] = self.tree_from_list(op_list, term_list)
+    #
+        def f_closure(c1):
             def f(u):
-                result = [c0 * np.cos(c0 * u[0])]
-                for i in range(1, self.type_to_dim["heat"] - 1):
+                result = [c1 * u[-1] - 2 * c1 * u[0] + c1 * u[1]]
+                for i in range(1, self.type_to_mesh["heat"] - 1):
                     result.append(c1 * (u[i - 1] + u[i + 1]) - 2 * c1 * u[i])
-                result.append(2 * c1 * u[-2] - 2 * c1 * u[-1])
+                result.append(c1 * u[-2] - 2 * c1 * u[-1] + c1 * u[0])
                 return np.array(result).reshape(u.shape)
 
             return f
 
-        item["func"] = f_closure(c0, c1)
+        item["func"] = f_closure(c1)
 
         # ODE solve
         num_initial_points = self.ICs_per_equation if train else self.eval_ICs_per_equation
-        y_0s = rng.uniform(-2, 2, (num_initial_points * 10, self.type_to_dim["heat"]))
+        y_0s = rng.uniform(-2, 2, (num_initial_points * 10, self.type_to_mesh["heat"]))
         res = []
         fun = lambda _, y: item["func"](y)
         for i in range(num_initial_points * 10):
@@ -3070,19 +3104,12 @@ class PDEGenerator(ODEGenerator):
         def heat_tree_list(self):
             p = self.params
             ph = self.ph
-            op_list = [[],["sub","add"],["sub"]]
+            op_list = [["sub","add"]]
             term_list = [
-                [
-                    Node("mul", p, [Node(ph, p), Node("cos", p, [self.mul_terms([ph, "t"])])])
-                ],
                 [
                     self.mul_terms([ph, "u_i-1"]),
                     self.mul_terms([ph, "u_i"]),
                     self.mul_terms([ph, "u_i+1"]),
-                ],
-                [
-                    self.mul_terms([ph, "u_n-1"]),
-                    self.mul_terms([ph, "u_n"]),
                 ]
             ]
             return op_list, term_list
@@ -3097,19 +3124,13 @@ class PDEGenerator(ODEGenerator):
 
             p = self.params
 
-            op_list = [[],["sub","add"],["sub"]]
+            op_list = [["sub","add"]]
             term_list = [
+
                 [
-                    Node("mul", p, [Node(str(c0), p), Node("cos", p, [self.mul_terms([str(c0), "t"])])])
-                ],
-                [
-                    self.mul_terms([str(c1), "u_i-1"]),
-                    self.mul_terms([str(2*c1), "u_i"]),
-                    self.mul_terms([str(c1), "u_i+1"]),
-                ],
-                [
-                    self.mul_terms([str(2*c1), "u_n-1"]),
-                    self.mul_terms([str(2*c1), "u_n"]),
+                    self.mul_terms([str(c1), "u_0"]),
+                    self.mul_terms([str(2*c1), "u_1"]),
+                    self.mul_terms([str(c1), "u_2"]),
                 ]
             ]
 
