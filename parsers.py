@@ -30,8 +30,7 @@ def get_parser():
     eval_size = 512000  # eval dataset size
 
     dataset_path = (
-        "functions,checkpoint/ruijie/dumped/pde_exp/train/data.prefix,checkpoint/ruijie/dumped/pde_exp/valid/data.prefix,"
-        "ruijie/dumped/pde_exp/test/data.prefix"
+        "functions,../dataset/pde_heat/train_512000_pde_heat.prefix,../dataset/pde_heat/val_25600_pde_heat.prefix,"
     )
 
     # main parameters

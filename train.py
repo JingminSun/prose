@@ -215,7 +215,7 @@ if __name__ == "__main__":
         params.debugging = False
 
     if params.export_data:
-        params.cpu = False
+        params.cpu = True
         params.eval_in_domain = False
         params.use_wandb = False
         params.save_periodic = 0
@@ -254,6 +254,9 @@ if __name__ == "__main__":
             params.exp_id = "debug_%08i" % random.randint(0, 100000000)
         params.debug_slurm = True
 
+
+    if params.types.startswith("pde"):
+        params.max_output_dimension = params.max_pde_mesh
     # check parameters
     check_model_params(params)
 

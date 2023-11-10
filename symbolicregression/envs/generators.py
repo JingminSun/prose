@@ -2946,7 +2946,7 @@ class ODEGenerator:
 
     def generate_heat(self, rng, train):
 
-        c1_range = self.get_sample_range((self.type_to_mesh["heat"]-1)** 2)
+        c1_range = self.get_sample_range((self.type_to_mesh["heat"])** 2)
 
         item = {"type": "heat"}
 

@@ -386,7 +386,7 @@ class FunctionEnvironment(object):
         )
 
         parser.add_argument(
-            "--pde_param_range_gamma", type=float, default=0.01, help="relative range for sampling parameters of PDEs"
+            "--max_pde_mesh", type=float, default=6, help="maximum mesh size for PDEs"
         )
 
         parser.add_argument(
