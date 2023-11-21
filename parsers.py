@@ -15,7 +15,7 @@ def get_parser():
 
     # some default values, can also be changed in command line
 
-    hidden_dim = 256# default 512
+    hidden_dim = 512# default 512
     n_head = 8
 
     n_text_enc_layers = 4  # default 4

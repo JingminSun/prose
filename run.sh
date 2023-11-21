@@ -1,8 +1,19 @@
 testdata=dataset/pde_heat/test_102400_pde_heat.prefix
 
 # base run
-torchrun --standalone --nnodes 1 --nproc_per_node 2 train.py --exp_id base_pde_heat_256 --max_epoch 80 &&
-CUDA_VISIBLE_DEVICES=0 python train.py --use_wandb True --eval_only --exp_name operator_eval --exp_id base_pde_heat_256 --eval_data $testdata --eval_size 102400 --eval_from_exp checkpoint/jingmins/dumped/pde_exp/base_pde_heat_256  --batch_size_eval 512 --eval_amp -1 &&
+torchrun --standalone --nnodes 1 --nproc_per_node 2 train.py --exp_id base_pde_heat_512_5 --data_loss_weight 5.0 --max_epoch 80 &&
+CUDA_VISIBLE_DEVICES=0 python train.py --use_wandb True --eval_only --exp_name operator_eval --exp_id base_pde_heat_512_5 --eval_data $testdata --eval_size 102400 --eval_from_exp checkpoint/jingmins/dumped/pde_exp/base_pde_heat_512_5  --batch_size_eval 512 --eval_amp -1 &&
+
+torchrun --standalone --nnodes 1 --nproc_per_node 2 train.py --exp_id base_pde_heat_512_4 --data_loss_weight 4.0 --max_epoch 80 &&
+CUDA_VISIBLE_DEVICES=0 python train.py --use_wandb True --eval_only --exp_name operator_eval --exp_id base_pde_heat_512_4 --eval_data $testdata --eval_size 102400 --eval_from_exp checkpoint/jingmins/dumped/pde_exp/base_pde_heat_512_4  --batch_size_eval 512 --eval_amp -1 &&
+
+torchrun --standalone --nnodes 1 --nproc_per_node 2 train.py --exp_id base_pde_heat_512_3 --data_loss_weight 3.0 --max_epoch 80 &&
+CUDA_VISIBLE_DEVICES=0 python train.py --use_wandb True --eval_only --exp_name operator_eval --exp_id base_pde_heat_512_3 --eval_data $testdata --eval_size 102400 --eval_from_exp checkpoint/jingmins/dumped/pde_exp/base_pde_heat_512_3  --batch_size_eval 512 --eval_amp -1 &&
+
+
+torchrun --standalone --nnodes 1 --nproc_per_node 2 train.py --exp_id base_pde_heat_512_2 --data_loss_weight 2.0 --max_epoch 80 &&
+CUDA_VISIBLE_DEVICES=0 python train.py --use_wandb True --eval_only --exp_name operator_eval --exp_id base_pde_heat_512_2 --eval_data $testdata --eval_size 102400 --eval_from_exp checkpoint/jingmins/dumped/pde_exp/base_pde_heat_512_2  --batch_size_eval 512 --eval_amp -1 &&
+
 
 ## no text
 #CUDA_VISIBLE_DEVICES=0 python train.py --no_text --exp_id no_text_t6e_5 --batch_size 512 --batch_size_eval 1024 --max_epoch 80 &&
