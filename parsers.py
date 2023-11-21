@@ -15,7 +15,7 @@ def get_parser():
 
     # some default values, can also be changed in command line
 
-    hidden_dim = 32  # default 512
+    hidden_dim = 256# default 512
     n_head = 8
 
     n_text_enc_layers = 4  # default 4
@@ -30,7 +30,8 @@ def get_parser():
     eval_size = 512000  # eval dataset size
 
     dataset_path = (
-        "functions,../dataset/pde_heat/train_512000_pde_heat.prefix,../dataset/pde_heat/val_25600_pde_heat.prefix,"
+        "functions,dataset/pde_heat/train_512000_pde_heat.prefix,dataset/pde_heat/val_25600_pde_heat.prefix,"
+        "dataset/pde_heat/test_102400_pde_heat.prefix"
     )
 
     # main parameters
